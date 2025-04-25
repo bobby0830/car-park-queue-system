@@ -1,0 +1,38 @@
+.qr-scanner-card {
+  margin: 2rem 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.qr-scanner-card .card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.qr-reader-container {
+  width: 100%;
+  height: 300px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.scanner-btn {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.scanner-instructions {
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Responsiveness */
+@media (min-width: 768px) {
+  .qr-scanner-card {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

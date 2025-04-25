@@ -1,0 +1,64 @@
+.user-queue-card {
+  margin: 2rem 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-queue-card .card-header {
+  background-color: #f8f9fa;
+}
+
+.queue-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.info-item {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.info-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.highlight {
+  background-color: #e3f2fd;
+  border: 1px solid #b3e5fc;
+}
+
+.timer {
+  font-size: 1.5rem;
+  color: #007bff;
+}
+
+/* 使用中特效 */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.user-queue-card .badge-success {
+  animation: pulse 2s infinite;
+}
+
+/* 響應式調整 */
+@media (min-width: 768px) {
+  .user-queue-card {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

@@ -1,0 +1,85 @@
+.user-queue-list {
+  margin: 2rem 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-queue-list .card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.queue-item {
+  padding: 1rem;
+  transition: background-color 0.2s;
+}
+
+.queue-item:hover {
+  background-color: #f8f9fa;
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.queue-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.detail-value {
+  font-weight: 500;
+}
+
+.detail-value.highlight {
+  color: #007bff;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.queue-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 動畫效果 */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.alert-success {
+  animation: fadeOut 0.5s ease 2.5s forwards;
+}
+
+/* 響應式調整 */
+@media (max-width: 576px) {
+  .queue-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .queue-header .badge {
+    margin-top: 0.5rem;
+  }
+  
+  .detail-item {
+    width: 100%;
+  }
+}

@@ -1,0 +1,32 @@
+.queue-join-card {
+  margin: 2rem 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.queue-join-card .card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0069d9;
+}
+
+/* 響應式調整 */
+@media (min-width: 768px) {
+  .queue-join-card {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
