@@ -1,11 +1,15 @@
 // CORS 配置中间件
 const allowedOrigins = [
-  // Vercel 域名
+  // Vercel 域名 - 添加所有可能的 Vercel 预览域名
+  'https://car-park-queue-system-i9iyaumj6-bobby0830s-projects.vercel.app',
   'https://car-park-queue-system-8l8w8df97-bobby0830s-projects.vercel.app',
   'https://car-park-queue-system.vercel.app',
   // 开发环境
   'http://localhost:3000',
-  // 通配符 (生产环境)
+  // 本地测试用
+  'http://localhost:5000',
+  // 通配符 (允许所有域名 - 仅在开发/测试环境使用)
+  'https://*.vercel.app',
   '*'
 ];
 

@@ -14,12 +14,17 @@ const { corsOptions, allowedOrigins } = require('./middleware/cors');
 // Initialize express app
 const app = express();
 const server = http.createServer(app);
+
+// 配置更宽松的 Socket.io CORS 设置
 const io = socketIo(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: '*', // 允许所有来源
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true
-  }
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
+  },
+  // 添加 transports 选项，优先使用 websocket
+  transports: ['websocket', 'polling']
 });
 
 // Middleware
