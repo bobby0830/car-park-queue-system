@@ -3,6 +3,7 @@ import { Form, Button, Alert, Card, Badge } from 'react-bootstrap';
 import axios from 'axios';
 import './QueueJoin.css';
 import QRScanner from './QRScanner';
+import { API_URL } from '../config';
 
 const QueueJoin = ({ onJoinQueue, userId, setUserId }) => {
   const [reservedTime, setReservedTime] = useState(10);
@@ -25,7 +26,13 @@ const QueueJoin = ({ onJoinQueue, userId, setUserId }) => {
         throw new Error('請先掃描車位 QR 碼或選擇車位編號');
       }
       
-      const response = await axios.post('http://localhost:5000/api/queue', {
+      console.log('提交排队请求:', `${API_URL}/queue`, {
+        user_id: userId,
+        reserved_time: reservedTimeInSeconds,
+        parking_space: parkingSpace
+      });
+      
+      const response = await axios.post(`${API_URL}/queue`, {
         user_id: userId,
         reserved_time: reservedTimeInSeconds,
         parking_space: parkingSpace
