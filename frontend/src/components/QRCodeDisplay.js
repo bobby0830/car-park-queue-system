@@ -83,7 +83,7 @@ const QRCodeDisplay = () => {
                     <QRCodeSVG 
                       value={JSON.stringify({
                         parking_space: qrCode.parking_space,
-                        timestamp: Date.now(),
+                        id: qrCode.id || `parking-${qrCode.parking_space}`,
                         type: 'carpark_queue'
                       })}
                       size={200}
