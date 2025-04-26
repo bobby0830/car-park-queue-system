@@ -37,7 +37,8 @@ function App() {
   const [userQueueEntries, setUserQueueEntries] = useState([]);
   const [showNewQueueForm, setShowNewQueueForm] = useState(() => {
     // 如果URL中有join=true参数，则显示表单
-    return urlParams.join || true;
+    // 如果没有URL参数，则初始状态为显示
+    return urlParams.join === true;
   });
   const [selectedParkingSpace, setSelectedParkingSpace] = useState(urlParams.parking ? Number(urlParams.parking) : null);
   const [connected, setConnected] = useState(false);
@@ -97,8 +98,14 @@ function App() {
       // 保持向后兼容，保留第一个排队条目
       setUserQueueEntry(entries.length > 0 ? entries[0] : null);
       
-      // 如果用户有排队记录，默认不显示表单
-      setShowNewQueueForm(entries.length === 0);
+      // 仅当用户没有排队记录时，自动显示新增表单
+      if (entries.length === 0) {
+        setShowNewQueueForm(true);
+      }
+      // 在首次加载且有排队记录时，默认隐藏表单
+      else if (urlParams.join !== true) { 
+        setShowNewQueueForm(false);
+      }
     } else {
       setUserQueueEntries([]);
       setUserQueueEntry(null);
@@ -107,7 +114,7 @@ function App() {
     
     // 保存用户ID到本地存储
     localStorage.setItem('queueUserId', userId);
-  }, [userId, queue]);
+  }, [userId, queue, urlParams.join]);
 
   // 透過 API 獲取排隊數據
   const fetchQueueData = async () => {
@@ -221,7 +228,8 @@ function App() {
                     </>
                   )}
                   
-                  {(showNewQueueForm || userQueueEntries.length === 0) && (
+                  {/* 当没有排队记录或显示排队表单标志为true时显示表单 */}
+                  {(userQueueEntries.length === 0 || (userQueueEntries.length > 0 && showNewQueueForm)) && (
                     <QueueJoin 
                       onJoinQueue={handleJoinQueue} 
                       userId={userId} 
