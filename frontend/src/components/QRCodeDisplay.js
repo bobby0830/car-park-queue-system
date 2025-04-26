@@ -81,14 +81,11 @@ const QRCodeDisplay = () => {
                 <Card.Body className="text-center">
                   <div className="qr-wrapper">
                     <QRCodeSVG 
-                      value={JSON.stringify({
-                        parking_space: qrCode.parking_space,
-                        id: qrCode.id || `parking-${qrCode.parking_space}`,
-                        type: 'carpark_queue'
-                      })}
+                      value={`${window.location.origin}/?parking=${qrCode.parking_space}&join=true`}
                       size={200}
                       level="H"
                       includeMargin={true}
+                      title={`车位 #${qrCode.parking_space} 排队链接`}
                     />
                   </div>
                   <div className="parking-space-label">

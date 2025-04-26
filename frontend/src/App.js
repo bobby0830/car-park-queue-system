@@ -19,6 +19,15 @@ import { API_URL } from './config';
 import connectionManager from './utils/ConnectionManager';
 
 function App() {
+  // 获取URL参数
+  const [urlParams] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      parking: params.get('parking'),
+      join: params.get('join') === 'true'
+    };
+  });
+  
   const [queue, setQueue] = useState([]);
   const [userId, setUserId] = useState(() => {
     // 從 localStorage 讀取之前的用戶 ID
@@ -26,7 +35,11 @@ function App() {
   });
   const [userQueueEntry, setUserQueueEntry] = useState(null);  // 保留向後兼容
   const [userQueueEntries, setUserQueueEntries] = useState([]);
-  const [showNewQueueForm, setShowNewQueueForm] = useState(true);
+  const [showNewQueueForm, setShowNewQueueForm] = useState(() => {
+    // 如果URL中有join=true参数，则显示表单
+    return urlParams.join || true;
+  });
+  const [selectedParkingSpace, setSelectedParkingSpace] = useState(urlParams.parking ? Number(urlParams.parking) : null);
   const [connected, setConnected] = useState(false);
   const [connectionMode, setConnectionMode] = useState('disconnected'); // 'socket' 或 'polling' 或 'disconnected'
   const [error, setError] = useState('');
@@ -212,7 +225,8 @@ function App() {
                     <QueueJoin 
                       onJoinQueue={handleJoinQueue} 
                       userId={userId} 
-                      setUserId={setUserId} 
+                      setUserId={setUserId}
+                      initialParkingSpace={selectedParkingSpace}
                     />
                   )}
                 </Col>

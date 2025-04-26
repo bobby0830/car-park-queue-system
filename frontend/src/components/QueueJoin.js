@@ -5,13 +5,20 @@ import './QueueJoin.css';
 import QRScanner from './QRScanner';
 import { API_URL } from '../config';
 
-const QueueJoin = ({ onJoinQueue, userId, setUserId }) => {
+const QueueJoin = ({ onJoinQueue, userId, setUserId, initialParkingSpace }) => {
   const [reservedTime, setReservedTime] = useState(10);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [parkingSpace, setParkingSpace] = useState(null);
+  const [parkingSpace, setParkingSpace] = useState(initialParkingSpace || null);
+  
+  // 当initialParkingSpace变化时更新parkingSpace
+  React.useEffect(() => {
+    if (initialParkingSpace) {
+      setParkingSpace(initialParkingSpace);
+    }
+  }, [initialParkingSpace]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
