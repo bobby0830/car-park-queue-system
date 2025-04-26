@@ -1,10 +1,10 @@
 // Environment configurations
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Production backend URL (this will be your deployed backend URL)
-// You'll need to replace this with your actual deployed backend URL
-const PROD_API_URL = 'https://car-park-queue-api.herokuapp.com/api';
-const PROD_SOCKET_URL = 'https://car-park-queue-api.herokuapp.com';
+// Production backend URL (deployed backend URL)
+// Replace with your actual Render.com URL
+const PROD_API_URL = 'https://car-park-queue-api.onrender.com/api';
+const PROD_SOCKET_URL = 'https://car-park-queue-api.onrender.com';
 
 // Development backend URL (local)
 const DEV_API_URL = 'http://localhost:5000/api';
