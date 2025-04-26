@@ -8,18 +8,22 @@ const socketIo = require('socket.io');
 // Load environment variables
 dotenv.config();
 
+// 导入 CORS 配置
+const { corsOptions, allowedOrigins } = require('./middleware/cors');
+
 // Initialize express app
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
