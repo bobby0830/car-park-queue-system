@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Navbar, Nav, Alert, Button } from 'react-bootstrap';
+import { Container, Row, Col, Navbar, Nav, Alert, Button, Badge } from 'react-bootstrap';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import io from 'socket.io-client';
 import axios from 'axios';
 
 // 導入元件
@@ -14,7 +13,10 @@ import UserQueueList from './components/UserQueueList';
 import QRCodeDisplay from './components/QRCodeDisplay';
 
 // Import configuration
-import { API_URL, SOCKET_URL } from './config';
+import { API_URL } from './config';
+
+// Import our new ConnectionManager that handles Socket.io with REST API fallback
+import connectionManager from './utils/ConnectionManager';
 
 function App() {
   const [queue, setQueue] = useState([]);
@@ -25,70 +27,74 @@ function App() {
   const [userQueueEntry, setUserQueueEntry] = useState(null);  // 保留向後兼容
   const [userQueueEntries, setUserQueueEntries] = useState([]);
   const [showNewQueueForm, setShowNewQueueForm] = useState(true);
-  const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
+  const [connectionMode, setConnectionMode] = useState('disconnected'); // 'socket' 或 'polling' 或 'disconnected'
   const [error, setError] = useState('');
 
-  // 初始化 Socket.io 連接
+  // 初始化连接管理器
   useEffect(() => {
-    const newSocket = io(SOCKET_URL);
-    setSocket(newSocket);
+    // 处理连接状态变化
+    const handleConnectionChange = (isConnected, mode) => {
+      console.log(`连接状态变化: ${isConnected ? '已连接' : '已断开'}, 模式: ${mode}`);
+      setConnected(isConnected);
+      setConnectionMode(mode);
+      
+      if (!isConnected) {
+        setError('无法建立实时连接，已切换到轮询模式。');
+      } else {
+        setError('');
+      }
+    };
 
-    // 連接事件處理
-    newSocket.on('connect', () => {
-      setConnected(true);
-      setError('');
-    });
-
-    newSocket.on('connect_error', (err) => {
-      console.error('Socket.io 連接錯誤:', err);
-      setConnected(false);
-      setError('無法連接到伺服器，請檢查伺服器是否運行。');
-    });
-
-    // 監聽實時更新
-    newSocket.on('queueUpdate', (data) => {
+    // 初始化连接管理器
+    connectionManager.initialize(handleConnectionChange);
+    
+    // 监听队列更新
+    connectionManager.on('queueUpdate', (data) => {
+      console.log('收到队列更新:', data);
       setQueue(data);
       if (userId) {
-        const userEntry = data.find(entry => entry.user_id === userId);
-        setUserQueueEntry(userEntry || null);
+        const userEntries = data.filter(entry => entry.user_id === userId);
+        setUserQueueEntries(userEntries);
+        setUserQueueEntry(userEntries.length > 0 ? userEntries[0] : null); // 保留向後兼容
       }
     });
 
-    // 組件卸載時斷開連接
+    // 组件卸载时清理
     return () => {
-      newSocket.disconnect();
+      connectionManager.cleanup();
     };
   }, []);
 
-  // 當 userId 改變時更新 localStorage 並查找用戶的排隊資訊
+  // 组件加载时立即获取队列数据
   useEffect(() => {
-    localStorage.setItem('queueUserId', userId);
+    fetchQueueData();
+    // 每 30 秒刷新一次数据，作为额外保障
+    const refreshInterval = setInterval(fetchQueueData, 30000);
+    return () => clearInterval(refreshInterval);
+  }, []);
 
+  // 在 userId 变化时更新用户数据
+  useEffect(() => {
     if (userId && queue.length > 0) {
-      // 獲取用戶所有的排隊記錄
+      // 获取用户的所有排队条目
       const entries = queue.filter(entry => entry.user_id === userId);
       setUserQueueEntries(entries);
       
-      // 向後兼容，維持首個排隊記錄
-      const userEntry = entries.length > 0 ? entries[0] : null;
-      setUserQueueEntry(userEntry);
+      // 保持向后兼容，保留第一个排队条目
+      setUserQueueEntry(entries.length > 0 ? entries[0] : null);
       
-      // 如果用戶有排隊記錄，預設不顯示表單
+      // 如果用户有排队记录，默认不显示表单
       setShowNewQueueForm(entries.length === 0);
     } else {
       setUserQueueEntries([]);
       setUserQueueEntry(null);
       setShowNewQueueForm(true);
     }
+    
+    // 保存用户ID到本地存储
+    localStorage.setItem('queueUserId', userId);
   }, [userId, queue]);
-
-  // 如果沒有 Socket.io 更新，則通過 API 獲取數據
-  useEffect(() => {
-    if (!connected && queue.length === 0) {
-      fetchQueueData();
-    }
-  }, [connected]);
 
   // 透過 API 獲取排隊數據
   const fetchQueueData = async () => {
@@ -107,10 +113,14 @@ function App() {
 
   // 用戶加入排隊後的處理
   const handleJoinQueue = (newEntry) => {
+    // 更新本地状态
     setQueue(prev => [...prev, newEntry]);
     setUserQueueEntries(prev => [...prev, newEntry]);
     setUserQueueEntry(newEntry);  // 向後兼容
     setShowNewQueueForm(false);
+    
+    // 通过连接管理器发送事件
+    connectionManager.emit('joinQueue', newEntry);
   };
   
   // 用戶取消排隊後的處理
@@ -126,6 +136,9 @@ function App() {
     if (updatedEntries.length === 0) {
       setShowNewQueueForm(true);
     }
+    
+    // 通过连接管理器发送取消事件
+    connectionManager.emit('leaveQueue', { queueId });
   };
   
   // 切換顯示新排隊表單
@@ -147,12 +160,17 @@ function App() {
               </Nav>
             {!connected && (
               <span className="navbar-text text-danger">
-                伺服器連接中斷
+                <Badge bg="danger">離線</Badge> 伺服器連接中斷
               </span>
             )}
-            {connected && (
+            {connected && connectionMode === 'socket' && (
               <span className="navbar-text text-success">
-                伺服器已連接
+                <Badge bg="success">即時</Badge> 實時連接已建立
+              </span>
+            )}
+            {connected && connectionMode === 'polling' && (
+              <span className="navbar-text text-warning">
+                <Badge bg="warning" text="dark">輪詢</Badge> 使用備用連接
               </span>
             )}
           </Navbar.Collapse>
@@ -176,7 +194,7 @@ function App() {
                       <UserQueueList 
                         userId={userId}
                         onQueueCancelled={handleQueueCancelled}
-                        socket={socket}
+                        connectionManager={connectionManager}
                       />
                       
                       <div className="text-center mt-3 mb-4">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, ListGroup, Badge, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import './UserQueueList.css';
+import { API_URL } from '../config';
 
 // 格式化秒數為分鐘:秒數
 const formatTime = (seconds) => {
@@ -25,7 +26,7 @@ const getStatusInfo = (status) => {
   }
 };
 
-const UserQueueList = ({ userId, onQueueCancelled, socket }) => {
+const UserQueueList = ({ userId, onQueueCancelled, connectionManager }) => {
   const [queueEntries, setQueueEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,9 +50,9 @@ const UserQueueList = ({ userId, onQueueCancelled, socket }) => {
     }
   }, [successMessage]);
 
-  // 監聽 socket 更新
+  // 監聽队列更新
   useEffect(() => {
-    if (socket) {
+    if (connectionManager && userId) {
       const handleQueueUpdate = (data) => {
         if (userId) {
           const userEntries = data.filter(entry => entry.user_id === userId);
@@ -59,18 +60,20 @@ const UserQueueList = ({ userId, onQueueCancelled, socket }) => {
         }
       };
       
-      socket.on('queueUpdate', handleQueueUpdate);
+      // 使用连接管理器监听队列更新
+      connectionManager.on('queueUpdate', handleQueueUpdate);
       
       return () => {
-        socket.off('queueUpdate', handleQueueUpdate);
+        connectionManager.off('queueUpdate', handleQueueUpdate);
       };
     }
-  }, [socket, userId]);
+  }, [connectionManager, userId]);
 
   const fetchUserQueues = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/queue/user/${userId}/all`);
+      // 使用配置中的 API URL 而不是硬编码的地址
+      const response = await axios.get(`${API_URL}/queue/user/${userId}/all`);
       setQueueEntries(response.data);
       setError('');
     } catch (err) {
@@ -84,11 +87,15 @@ const UserQueueList = ({ userId, onQueueCancelled, socket }) => {
   const handleCancelQueue = async (queueId) => {
     try {
       setCancellingId(queueId);
-      await axios.delete(`http://localhost:5000/api/queue/${queueId}`);
+      // 使用配置中的 API URL
+      await axios.delete(`${API_URL}/queue/${queueId}`);
       
       // 更新本地狀態
       const updatedEntries = queueEntries.filter(entry => entry.id !== queueId);
       setQueueEntries(updatedEntries);
+      
+      // 使用连接管理器发送取消事件
+      connectionManager.emit('leaveQueue', { queueId });
       
       // 通知父組件
       if (onQueueCancelled) {
