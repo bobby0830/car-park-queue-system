@@ -87,6 +87,11 @@ const UserQueueList = ({ userId, onQueueCancelled, connectionManager }) => {
   const handleCancelQueue = async (queueId) => {
     try {
       setCancellingId(queueId);
+      
+      // 获取要取消/删除的条目
+      const entryToCancel = queueEntries.find(entry => entry.id === queueId);
+      const isCompletedEntry = entryToCancel && entryToCancel.status === 'completed';
+      
       // 使用配置中的 API URL
       await axios.delete(`${API_URL}/queue/${queueId}`);
       
@@ -102,10 +107,11 @@ const UserQueueList = ({ userId, onQueueCancelled, connectionManager }) => {
         onQueueCancelled(queueId);
       }
       
-      setSuccessMessage('已成功取消排隊');
+      // 根据状态显示不同的成功消息
+      setSuccessMessage(isCompletedEntry ? '已成功刪除完成的記錄' : '已成功取消排隊');
     } catch (err) {
       console.error('Cancel queue error:', err);
-      setError('取消排隊失敗，請稍後再試');
+      setError('操作失敗，請稍後再試');
     } finally {
       setCancellingId(null);
     }
@@ -149,6 +155,7 @@ const UserQueueList = ({ userId, onQueueCancelled, connectionManager }) => {
             {queueEntries.map(entry => {
               const statusInfo = getStatusInfo(entry.status);
               const canCancel = entry.status === 'waiting';
+              const isCompleted = entry.status === 'completed';
               
               return (
                 <ListGroup.Item key={entry.id} className="queue-item">
@@ -191,15 +198,15 @@ const UserQueueList = ({ userId, onQueueCancelled, connectionManager }) => {
                       </div>
                     </div>
                     
-                    {canCancel && (
+                    {(canCancel || isCompleted) && (
                       <div className="queue-actions">
                         <Button 
-                          variant="outline-danger" 
+                          variant={isCompleted ? "outline-secondary" : "outline-danger"} 
                           size="sm"
                           onClick={() => handleCancelQueue(entry.id)}
                           disabled={cancellingId === entry.id}
                         >
-                          {cancellingId === entry.id ? '取消中...' : '取消排隊'}
+                          {cancellingId === entry.id ? '處理中...' : (isCompleted ? '刪除記錄' : '取消排隊')}
                         </Button>
                       </div>
                     )}
